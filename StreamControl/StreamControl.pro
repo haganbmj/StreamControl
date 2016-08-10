@@ -9,6 +9,8 @@ QT       += core gui xml widgets network script
 TARGET = StreamControl
 TEMPLATE = app
 
+LIBS += -luser32
+
 SOURCES += *.cpp \
     $$files(o2/*.cpp) \
     $$files(dialogs/*.cpp) \

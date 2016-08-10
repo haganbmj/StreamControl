@@ -1257,32 +1257,35 @@ void MainWindow::reloadLayout() {
 
 void MainWindow::parseLayout(QDomElement element, QWidget *parent) {
     QDomNode child = element.firstChildElement();
+
     while (!child.isNull()) {
-        QString tagName = child.toElement().tagName();
+        QDomElement childElement = child.toElement();
+        QString tagName = childElement.tagName();
+
         if (tagName == "label") {
-            addLabel(child.toElement(), parent);
+            addLabel(childElement, parent);
         } else if (tagName == "line") {
-            addLine(child.toElement(), parent);
+            addLine(childElement, parent);
         } else if (tagName == "button") {
-            addButton(child.toElement(), parent);
+            addButton(childElement, parent);
         } else if (tagName == "lineEdit") {
-            addLineEdit(child.toElement(), parent);
+            addLineEdit(childElement, parent);
         } else if (tagName == "spinBox") {
-            addSpinBox(child.toElement(), parent);
+            addSpinBox(childElement, parent);
         } else if (tagName == "checkBox") {
-            addCheckBox(child.toElement(), parent);
+            addCheckBox(childElement, parent);
         } else if (tagName == "radioGroup") {
-            addRadioGroup(child.toElement(), parent);
+            addRadioGroup(childElement, parent);
         } else if (tagName == "comboBox") {
-            addComboBox(child.toElement(), parent);
+            addComboBox(childElement, parent);
         } else if (tagName == "tweet") {
-            addTweetWidget(child.toElement(), parent);
+            addTweetWidget(childElement, parent);
             needLink = true;
         } else if (tagName == "challonge") {
-            addChallongeWidget(child.toElement(), parent, widgetList);
+            addChallongeWidget(childElement, parent, widgetList);
         } else if (tagName == "tabSet") {
-            QString newTabSet = addTabWidget(child.toElement(), parent);
-            parseTabLayout(child.toElement(), visualList[newTabSet]);
+            QString newTabSet = addTabWidget(childElement, parent);
+            parseTabLayout(childElement, visualList[newTabSet]);
         }
 
         child = child.nextSiblingElement();
@@ -1300,6 +1303,11 @@ void MainWindow::parseTabLayout(QDomElement element, QWidget *parent) {
             visualList[newTab] = new QWidget(parent);
 
             parseLayout(child.toElement(),visualList[newTab]);
+
+            // TODO: Make this work.
+            if (!child.toElement().attribute("stylesheet").isEmpty()) {
+                visualList[newTab]->setStyleSheet(element.attribute("stylesheet"));
+            }
 
             if (child.toElement().attribute("scrollable") == "1") {
                 visualList[newTab+"Scroll"] = new QScrollArea(parent);
@@ -1584,6 +1592,10 @@ void MainWindow::addLabel(QDomElement element, QWidget *parent) {
                                                           element.attribute("height").toInt()));
     ((QLabel*)visualList[newLabel])->setText(element.text());
 
+    if(!element.attribute("stylesheet").isEmpty()) {
+        ((QWidget*)visualList[newLabel])->setStyleSheet(element.attribute("stylesheet"));
+    }
+
     layoutIterator++;
 }
 
@@ -1723,6 +1735,9 @@ void MainWindow::addCheckBox(QDomElement element, QWidget *parent) {
     if(!element.attribute("uncheckHotkey").isEmpty()) {
         addHotkey(element.attribute("uncheckHotkey"),newCheckBox,"Uncheck");
     }
+    if(!element.attribute("stylesheet").isEmpty()) {
+        ((QWidget*)widgetList[newCheckBox])->setStyleSheet(element.attribute("stylesheet"));
+    }
 }
 
 void MainWindow::addComboBox(QDomElement element, QWidget *parent) {
@@ -1739,7 +1754,10 @@ void MainWindow::addComboBox(QDomElement element, QWidget *parent) {
 
     if (element.attribute("editable") == "true" || element.attribute("editable") == "1") {
         ((ScComboBox*)widgetList[newComboBox])->setEditable(true);
+    }
 
+    if(!element.attribute("stylesheet").isEmpty()) {
+        ((QWidget*)widgetList[newComboBox])->setStyleSheet(element.attribute("stylesheet"));
     }
 
     QDomNode child = element.firstChildElement();
@@ -1846,8 +1864,14 @@ void MainWindow::addRadioGroup(QDomElement element, QWidget *parent) {
             newRadioButton->setObjectName(radioName);
             if(radioIterator == 0)
                 newRadioButton->setChecked(true);
+
+            if(!element.attribute("stylesheet").isEmpty()) {
+                newRadioButton->setStyleSheet(element.attribute("stylesheet"));
+            }
+
             ((ScRadioGroup*)widgetList[newRadioGroup])->addButton(newRadioButton,radioIterator);
             ((ScRadioGroup*)widgetList[newRadioGroup])->setValue(radioIterator,value);
+
             radioIterator++;
 
         }
@@ -1858,9 +1882,9 @@ void MainWindow::addRadioGroup(QDomElement element, QWidget *parent) {
 }
 
 void MainWindow::addButton(QDomElement element, QWidget *parent) {
-    if (element.attribute("type") == "reset") {
-        QString newButton = element.attribute("id");
+    QString newButton = element.attribute("id");
 
+    if (element.attribute("type") == "reset") {
         QList<QString> resetL = CSV::parseFromString(element.attribute("reset"))[0];
 
         widgetType[newButton] = "resetButton";
@@ -1885,9 +1909,6 @@ void MainWindow::addButton(QDomElement element, QWidget *parent) {
         }
 
     } else if (element.attribute("type") == "swap") {
-
-        QString newButton = element.attribute("id");
-
         QList<QString> swapl1 = CSV::parseFromString(element.attribute("swapSet1"))[0];
         QList<QString> swapl2 = CSV::parseFromString(element.attribute("swapSet2"))[0];
 
@@ -1927,11 +1948,11 @@ void MainWindow::addButton(QDomElement element, QWidget *parent) {
         if (element.attribute("saveonclick") == "true" || element.attribute("saveonclick") == "1") {
             nSaveOnClick = true;
         }
-        QString newButton = element.attribute("id");
         widgetType[newButton] = "tsButton";
 
         widgetList[newButton] = new ScTSButton(nSaveOnClick,parent);
         widgetList[newButton]->setObjectName(newButton);
+
         ((ScTSButton*)widgetList[newButton])->setGeometry(QRect(element.attribute("x").toInt(),
                                            element.attribute("y").toInt(),
                                            element.attribute("width").toInt(),
@@ -1953,7 +1974,6 @@ void MainWindow::addButton(QDomElement element, QWidget *parent) {
         if (element.attribute("saveonclick") == "true" || element.attribute("saveonclick") == "1") {
             nSaveOnClick = true;
         }
-        QString newButton = element.attribute("id");
         QString nWidget = element.attribute("widget");
         QString nValue = element.attribute("value");
         widgetType[newButton] = "setButton";
@@ -1977,6 +1997,10 @@ void MainWindow::addButton(QDomElement element, QWidget *parent) {
         if(!element.attribute("hotkey").isEmpty()) {
             addHotkey(element.attribute("hotkey"),newButton,"setButton");
         }
+    }
+
+    if(!element.attribute("stylesheet").isEmpty()) {
+        ((QWidget*)visualList[newButton])->setStyleSheet(element.attribute("stylesheet"));
     }
 }
 
@@ -2030,6 +2054,10 @@ void MainWindow::addLineEdit(QDomElement element, QWidget *parent) {
                                              element.attribute("width").toInt(),
                                              element.attribute("height").toInt()));
     widgetType[newLineEdit] = "lineEdit";
+
+    if(!element.attribute("stylesheet").isEmpty()) {
+        ((QWidget*)widgetList[newLineEdit])->setStyleSheet(element.attribute("stylesheet"));
+    }
 
     if (element.text() != "") {
         ((ScLineEdit*)widgetList[newLineEdit])->setPlaceholderText(element.text());
@@ -2462,6 +2490,10 @@ void MainWindow::addSpinBox(QDomElement element, QWidget *parent) {
                                               element.attribute("y").toInt(),
                                               element.attribute("width").toInt(),
                                               element.attribute("height").toInt()));
+
+    if(!element.attribute("stylesheet").isEmpty()) {
+        ((QWidget*)widgetList[newSpinBox])->setStyleSheet(element.attribute("stylesheet"));
+    }
     if(!element.attribute("maximum").isEmpty()) {
         ((QSpinBox*)widgetList[newSpinBox])->setMaximum(element.attribute("maximum").toInt());
     }
@@ -2484,6 +2516,10 @@ QString MainWindow::addTabWidget(QDomElement element, QWidget *parent) {
                                                           element.attribute("y").toInt(),
                                                           element.attribute("width").toInt(),
                                                           element.attribute("height").toInt()));
+
+    if (!element.attribute("stylesheet").isEmpty()) {
+        ((QWidget*)visualList[tabSet])->setStyleSheet(element.attribute("stylesheet"));
+    }
 
     layoutIterator++;
     return tabSet;
