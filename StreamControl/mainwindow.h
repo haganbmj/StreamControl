@@ -52,7 +52,7 @@ public:
 
     void loadData();
     void loadSettings();
-    void setSetting(QString, QString);
+    void updatePersistentSetting(QString, QString);
 
     QWidget *centralWidget;
     QToolBar *toolBar;

@@ -125,7 +125,7 @@ MainWindow::MainWindow()
     hideReloadLayout->setCheckable(true);
     configMenu->addAction(hideReloadLayout);
 
-    actionAlwaysOnTop = new QAction("Always on top", this);
+    actionAlwaysOnTop = new QAction("Always on Top", this);
     actionAlwaysOnTop->setCheckable(true);
     configMenu->addAction(actionAlwaysOnTop);
 
@@ -200,9 +200,6 @@ void MainWindow::keyPoll() {
                 }
             }
         }
-
-
-
     }
     if (!foundHotkey) {
         hotkeyDown = false;
@@ -214,11 +211,9 @@ bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *r
 {
     //windows
     #ifdef Q_OS_WIN
-    if(eventType=="windows_generic_MSG" && !altHotkeyHandling)
-    {
+    if(eventType=="windows_generic_MSG" && !altHotkeyHandling) {
         MSG* msg=static_cast<MSG*>(message);
-        if(msg->message==WM_HOTKEY)
-        {
+        if(msg->message==WM_HOTKEY) {
             UINT fuModifiers = (UINT) LOWORD(msg->lParam);  // key-modifier flags
             UINT uVirtKey = (UINT) HIWORD(msg->lParam);     // virtual-key code
 
@@ -231,39 +226,28 @@ bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *r
             }
 
             return true;
-
          }
     }
     #endif
     //osx
     #ifdef Q_OS_MAC
-    if (eventType=="mac_generic_NSEvent")
-    {
+    if (eventType=="mac_generic_NSEvent") {
         //cast message
         EventRef* msg=static_cast<EventRef*>(message);
     }
     #endif
- return false;
-
+    return false;
 }
 
 void MainWindow::loadSettings() {
     QFile file("settings.xml");
-    QString outputPath;
-    QString layoutPath;
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
 
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QDomDocument doc;
         doc.setContent(&file);
         file.close();
 
         loadSettingsFromXml(doc.namedItem("settings"), settings);
-
-        //load old name (xsplitPath) if coming from 0.3 or lower
-        outputPath = settings.value("outputPath", settings.value("xsplitPath"));
-        settings["outputPath"] = outputPath;
-
-        layoutPath = settings["layoutPath"];
 
         if (settings["useCDATA"] == "1") {
             useCDATA = true;
@@ -305,14 +289,11 @@ void MainWindow::loadSettings() {
             hideReloadLayout->setChecked(false);
         }
     } else {
-
         QMessageBox msgBox;
         msgBox.setText("Please be sure to configure StreamControl before you start.");
         msgBox.exec();
 
-        outputPath = "";
-
-        settings["outputPath"] = outputPath;
+        settings["outputPath"] = "";
         settings["useCDATA"] = "0";
         settings["hideReloadLayout"] = "0";
         settings["alwaysOnTop"] = "0";
@@ -324,7 +305,7 @@ void MainWindow::loadSettings() {
     }
 }
 
-void MainWindow::setSetting(QString settingName, QString settingValue) {
+void MainWindow::updatePersistentSetting(QString settingName, QString settingValue) {
     settings[settingName] = settingValue;
     saveSettings();
 }
@@ -932,7 +913,6 @@ QString MainWindow::saveJSON() {
     }
 
     return QJsonDocument(Obj).toJson(QJsonDocument::Indented);
-
 }
 
 void MainWindow::doCLI() {
@@ -975,7 +955,6 @@ void MainWindow::doCLI() {
     }
 
     execCmdQueue(cmdQueue);
-
 }
 
 QString MainWindow::getValueByID(QString id) {
@@ -1059,9 +1038,7 @@ QString MainWindow::parseCmd(QString cmdStr) {
     return cmdStr;
 }
 
-void MainWindow::resetFields(QString widget)
-{
-
+void MainWindow::resetFields(QString widget) {
     QListIterator<QString> i(resetList[widget]);
     while (i.hasNext()) {
         QString key = i.next();
@@ -1075,12 +1052,9 @@ void MainWindow::resetFields(QString widget)
     }
 }
 
-void MainWindow::swapFields(QString widget)
-{
-
+void MainWindow::swapFields(QString widget) {
     QString swSet1 = swapSets[widget][0];
     QString swSet2 = swapSets[widget][1];
-
 
     QList<QString> swList1 = swapList[swSet1];
     QList<QString> swList2 = swapList[swSet2];
@@ -1104,7 +1078,6 @@ void MainWindow::swapFields(QString widget)
             ((QCheckBox*)widgetList[newField])->setChecked(tempCheck);
         }
      }
-
 }
 
 void MainWindow::openConfig() {
@@ -1157,12 +1130,12 @@ void MainWindow::toggleAlwaysOnTop(bool on_top) {
     show();
     #endif
 
-    setSetting("alwaysOnTop", on_top ? "1" : "0");
+    updatePersistentSetting("alwaysOnTop", on_top ? "1" : "0");
 }
 
 void MainWindow::toggleHideReloadLayout(bool hide) {
     actionReloadLayout->setVisible(!hide);
-    setSetting("hideReloadLayout", hide ? "1" : "0");
+    updatePersistentSetting("hideReloadLayout", hide ? "1" : "0");
 }
 
 void MainWindow::loadLayout() {
@@ -1189,9 +1162,7 @@ void MainWindow::loadLayout() {
 
         file.close();
     } else {
-
         doc = getDefaultLayout();
-
     }
 
     if (parseError.length() > 0) {
@@ -1224,7 +1195,6 @@ void MainWindow::loadLayout() {
     if (layoutHeight < 50) {
         layoutHeight = 50;
     }
-
 
     resize(layoutWidth, layoutHeight);
     setFixedSize(layoutWidth, layoutHeight);
@@ -1272,7 +1242,6 @@ void MainWindow::loadLayout() {
     if (altHotkeyHandling) {
         keyPoller->start(16);
     }
-
 }
 
 void MainWindow::reloadLayout() {
@@ -1380,11 +1349,11 @@ void MainWindow::parseToolBar(QDomNode toolBarNode) {
             if (comboBoxElement.hasAttribute("width")) {
                 comboBoxWidth = comboBoxElement.attribute("width").toInt();
             }
+
             ((ScComboBox*)widgetList[newComboBox])->setMinimumWidth(comboBoxWidth);
 
             if (comboBoxElement.attribute("editable") == "1" || comboBoxElement.attribute("editable") == "true") {
                 ((ScComboBox*)widgetList[newComboBox])->setEditable(true);
-
             }
 
             toolBar->addWidget(((ScComboBox*)widgetList[newComboBox]));
@@ -1547,7 +1516,6 @@ void MainWindow::parseToolBar(QDomNode toolBarNode) {
 
         child = child.nextSiblingElement();
     }
-
 }
 
 void MainWindow::parseCLI(QDomNode cliNode) {
@@ -1603,7 +1571,6 @@ void MainWindow::parseCLI(QDomNode cliNode) {
 
         qDebug() << i.key() << ": " << list;
     }
-
 }
 
 void MainWindow::addLabel(QDomElement element, QWidget *parent) {
@@ -1859,7 +1826,6 @@ void MainWindow::addComboBox(QDomElement element, QWidget *parent) {
         ((ScComboBox*)widgetList[newComboBox])->setCompleter(completerList[newComboBox]);
 
         connect(completerList[newComboBox], SIGNAL(activated(QString)), this, SLOT(completerActivate(QString)));
-
     }
 }
 
@@ -1903,10 +1869,11 @@ void MainWindow::addRadioGroup(QDomElement element, QWidget *parent) {
 
         child = child.nextSiblingElement();
     }
-
 }
 
 void MainWindow::addButton(QDomElement element, QWidget *parent) {
+    QString listInsertedTo = "visualList";
+
     QString newButton = element.attribute("id");
 
     if (element.attribute("type") == "reset") {
@@ -1994,6 +1961,8 @@ void MainWindow::addButton(QDomElement element, QWidget *parent) {
         if(!element.attribute("hotkey").isEmpty()) {
             addHotkey(element.attribute("hotkey"),newButton,"Timestamp");
         }
+
+        listInsertedTo = "widgetList";
     } else if (element.attribute("type") == "setButton") {
         bool nSaveOnClick = false;
         if (element.attribute("saveonclick") == "true" || element.attribute("saveonclick") == "1") {
@@ -2025,7 +1994,11 @@ void MainWindow::addButton(QDomElement element, QWidget *parent) {
     }
 
     if(!element.attribute("stylesheet").isEmpty()) {
-        ((QWidget*)visualList[newButton])->setStyleSheet(element.attribute("stylesheet"));
+        if (listInsertedTo == "visualList") {
+            ((QWidget*)visualList[newButton])->setStyleSheet(element.attribute("stylesheet"));
+        } else if (listInsertedTo == "widgetList") {
+            ((QWidget*)widgetList[newButton])->setStyleSheet(element.attribute("stylesheet"));
+        }
     }
 }
 
@@ -2144,7 +2117,6 @@ void MainWindow::addLineEdit(QDomElement element, QWidget *parent) {
         ((ScLineEdit*)widgetList[newLineEdit])->setCompleter(completerList[newLineEdit]);
 
         connect(completerList[newLineEdit], SIGNAL(activated(QString)), this, SLOT(completerActivate(QString)));
-
     }
 }
 
@@ -2198,8 +2170,6 @@ void MainWindow::removeLineFromDataSet() {
     updateCompleters();
 
     ((ScLineEdit*)sender())->clear();
-
-
 }
 
 void MainWindow::removeComboFromDataSet() {
@@ -2250,8 +2220,6 @@ void MainWindow::removeComboFromDataSet() {
     updateCompleters();
 
     ((ScComboBox*)sender())->clearEditText();
-
-
 }
 
 void MainWindow::updateCompleters() {
@@ -2475,14 +2443,8 @@ void MainWindow::saveDataSets() {
                         }//end update
                     }
                 }
-
-
             }// end if has in set
-
-
         }// end if has master
-
-
     }
 
     if (!removedSetQueue.isEmpty()) {
@@ -2529,7 +2491,6 @@ void MainWindow::addSpinBox(QDomElement element, QWidget *parent) {
         addHotkey(element.attribute("decreaseHotkey"),newSpinBox,"Decrease");
     }
     widgetType[newSpinBox] = "spinBox";
-
 }
 
 QString MainWindow::addTabWidget(QDomElement element, QWidget *parent) {

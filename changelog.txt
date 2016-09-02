@@ -1,4 +1,9 @@
-0.4
+0.4.1 - August 2016 - TBD
+-----------------------------------------
+Added persistence to Always on Top and Hide Reload Button settings.
+Added ability to bind stylesheets to elements.
+
+0.4 - August 2016
 -----------------------------------------
 Added comboboxes (need to add datasets)
 Changed toolbar to something customisable (currently only supports labels and comboboxes)
