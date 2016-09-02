@@ -52,6 +52,7 @@ public:
 
     void loadData();
     void loadSettings();
+    void setSetting(QString, QString);
 
     QWidget *centralWidget;
     QToolBar *toolBar;
@@ -175,6 +176,9 @@ private:
     bool hotkeyDown;
 
     QAction *actionReloadLayout;
+
+    QAction *actionAlwaysOnTop;
+    QAction *hideReloadLayout;
 };
 
 #endif // MAINWINDOW_H

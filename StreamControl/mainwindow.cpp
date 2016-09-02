@@ -117,12 +117,15 @@ MainWindow::MainWindow()
     QMenu *configMenu = new QMenu();
     QAction *actionConfig = new QAction("Configuration", this);
     configMenu->addAction(actionConfig);
+
     QAction *actionWidgetSettings = new QAction("Widget Settings", this);
     configMenu->addAction(actionWidgetSettings);
-    QAction *hideReloadLayout = new QAction("Hide Reload Layout Button", this);
+
+    hideReloadLayout = new QAction("Hide Reload Layout Button", this);
     hideReloadLayout->setCheckable(true);
     configMenu->addAction(hideReloadLayout);
-    QAction *actionAlwaysOnTop = new QAction("Always on top", this);
+
+    actionAlwaysOnTop = new QAction("Always on top", this);
     actionAlwaysOnTop->setCheckable(true);
     configMenu->addAction(actionAlwaysOnTop);
 
@@ -283,6 +286,24 @@ void MainWindow::loadSettings() {
             altHotkeyHandling = false;
             settings["altHotkeyHandling"] = "0";
         }
+
+        if (settings["alwaysOnTop"] == "1") {
+            toggleAlwaysOnTop(true);
+            actionAlwaysOnTop->setChecked(true);
+        } else {
+            toggleAlwaysOnTop(false);
+            settings["alwaysOnTop"] = "0";
+            actionAlwaysOnTop->setChecked(false);
+        }
+
+        if (settings["hideReloadLayout"] == "1") {
+            toggleHideReloadLayout(true);
+            hideReloadLayout->setChecked(true);
+        } else {
+            settings["hideReloadLayout"] = "0";
+            toggleHideReloadLayout(false);
+            hideReloadLayout->setChecked(false);
+        }
     } else {
 
         QMessageBox msgBox;
@@ -293,6 +314,8 @@ void MainWindow::loadSettings() {
 
         settings["outputPath"] = outputPath;
         settings["useCDATA"] = "0";
+        settings["hideReloadLayout"] = "0";
+        settings["alwaysOnTop"] = "0";
         useCDATA = false;
         settings["format"] = QString::number(SC_XML);
         saveFormat = SC_XML;
@@ -301,6 +324,10 @@ void MainWindow::loadSettings() {
     }
 }
 
+void MainWindow::setSetting(QString settingName, QString settingValue) {
+    settings[settingName] = settingValue;
+    saveSettings();
+}
 
 /*
     Saves the complete contents of the settings map to the settings xml file.
@@ -1111,7 +1138,6 @@ void MainWindow::openWidgetSettings() {
 }
 
 void MainWindow::toggleAlwaysOnTop(bool on_top) {
-
     #ifdef Q_OS_WIN
     HWND hWnd = (HWND)this->winId();
 
@@ -1130,14 +1156,13 @@ void MainWindow::toggleAlwaysOnTop(bool on_top) {
     setWindowFlags( newflags );
     show();
     #endif
+
+    setSetting("alwaysOnTop", on_top ? "1" : "0");
 }
 
-void MainWindow::toggleHideReloadLayout(bool hide ) {
-    if (hide) {
-        actionReloadLayout->setVisible(false);
-    } else {
-        actionReloadLayout->setVisible(true);
-    }
+void MainWindow::toggleHideReloadLayout(bool hide) {
+    actionReloadLayout->setVisible(!hide);
+    setSetting("hideReloadLayout", hide ? "1" : "0");
 }
 
 void MainWindow::loadLayout() {
